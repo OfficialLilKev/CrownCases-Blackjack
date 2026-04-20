@@ -200,7 +200,6 @@ header {
 .bet-btn:hover:not(:disabled) { background: linear-gradient(135deg, var(--gold-light), var(--gold)); transform: translateY(-1px); }
 .bet-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
-/* Min bet notice */
 .min-bet-notice {
   text-align: center;
   font-size: 10px;
@@ -212,7 +211,7 @@ header {
 }
 .min-bet-notice span { color: var(--gold); }
 
-/* ── SIDE BETS REDESIGN ── */
+/* ── SIDE BETS ── */
 .sidebet-header-section {
   background: linear-gradient(135deg, rgba(240,180,41,.08) 0%, rgba(168,85,247,.06) 100%);
   border: 1px solid rgba(240,180,41,.2);
@@ -328,7 +327,9 @@ header {
 .result-loss { color: var(--red); }
 .result-push { color: var(--blue); }
 
-/* GAME AREA */
+/* ─────────────────────────────────────────────────────
+   GAME AREA — felt glow, perspective stage
+───────────────────────────────────────────────────── */
 .game-area {
   flex: 1;
   background: var(--bg);
@@ -339,20 +340,26 @@ header {
   padding: 16px 32px 16px;
   position: relative;
   overflow: hidden;
+  perspective: 1200px;
 }
+/* Premium illuminated felt */
 .game-area::before {
   content: '';
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 50% 50%, rgba(240,180,41,.03) 0%, transparent 70%),
-    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,.01) 40px),
-    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,.01) 40px);
+    radial-gradient(ellipse 70% 55% at 50% 50%, rgba(240,180,41,.055) 0%, rgba(34,197,94,.018) 40%, transparent 72%),
+    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(0,60,20,.35) 0%, transparent 100%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,.008) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,.008) 40px);
   pointer-events: none;
+  z-index: 0;
 }
+
 .ribbon-area {
   position: absolute; right: 16px; top: 50%;
   transform: translateY(-50%);
   display: flex; flex-direction: column; gap: 5px;
+  z-index: 1;
 }
 .ribbon {
   background: rgba(30,33,42,.9); border: 1px solid var(--border); border-right: none;
@@ -360,6 +367,7 @@ header {
   color: var(--muted); font-family: 'Rajdhani', sans-serif; font-weight: 700;
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
 }
+
 .hand-section {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   width: 100%; z-index: 1;
@@ -379,40 +387,255 @@ header {
 }
 .score-bubble.bust { border-color: var(--red); color: var(--red); }
 .score-bubble.blackjack { border-color: var(--gold); color: var(--gold); }
+
 .cards-row {
-  display: flex; gap: 10px; justify-content: center; align-items: center;
-  min-height: 145px; flex-wrap: wrap;
+  display: flex; gap: 0px; justify-content: center; align-items: flex-end;
+  min-height: 145px; flex-wrap: nowrap;
+  position: relative;
 }
 
-/* CARDS — bigger */
-.card {
-  width: 98px; height: 140px;
+/* ─────────────────────────────────────────────────────
+   3D CARD SYSTEM
+───────────────────────────────────────────────────── */
+.card-3d-wrapper {
+  width: 98px;
+  height: 140px;
+  flex-shrink: 0;
+  perspective: 800px;
+  position: relative;
+  /* Fan-out applied via JS inline transform */
+  transform-origin: bottom center;
+}
+
+.card-3d-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.42s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.card-3d-inner.is-flipping {
+  /* mid-flight flip handled by JS keyframes */
+}
+
+.card-face, .card-back-face {
+  position: absolute;
+  inset: 0;
   border-radius: 9px;
-  background: white;
-  box-shadow: 0 6px 20px rgba(0,0,0,.6);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* FRONT face */
+.card-face {
+  background: #fff;
+  box-shadow: 0 8px 28px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.08);
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; color: #111;
-  flex-shrink: 0;
-  position: relative; overflow: hidden;
-  animation: cardDeal .4s cubic-bezier(.175,.885,.32,1.275);
+  overflow: hidden;
+  transform: rotateY(0deg);
 }
-.card.hidden {
-  background: linear-gradient(135deg, #2a1f6b 0%, #3d2d99 50%, #2a1f6b 100%);
-  border: 2px solid rgba(255,255,255,.1);
+
+/* BACK face — branded CrownCases pattern */
+.card-back-face {
+  transform: rotateY(180deg);
+  background: linear-gradient(145deg, #0a0d18 0%, #131828 50%, #0a0d18 100%);
+  border: 2px solid rgba(240,180,41,.4);
+  box-shadow: 0 8px 28px rgba(0,0,0,.65), inset 0 0 40px rgba(240,180,41,.07);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.card.hidden::after {
+
+/* Diamond lattice pattern */
+.card-back-face::before {
   content: '';
-  background-image: url('https://www.image2url.com/r2/default/images/1776374468142-84d480cd-5e10-4a06-bf91-4050cafa1e85.png');
-  background-size: 65%;
-  background-repeat: no-repeat;
-  background-position: center;
-  position: absolute; inset: 0;
-  opacity: .7;
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(240,180,41,.25);
+  border-radius: 5px;
+  background:
+    repeating-linear-gradient(45deg, transparent, transparent 7px, rgba(240,180,41,.05) 7px, rgba(240,180,41,.05) 8px),
+    repeating-linear-gradient(-45deg, transparent, transparent 7px, rgba(240,180,41,.05) 7px, rgba(240,180,41,.05) 8px);
 }
-@keyframes cardDeal {
-  0% { transform: translateY(-40px) scale(.8) rotate(-5deg); opacity: 0; }
-  60% { transform: translateY(4px) scale(1.02) rotate(1deg); opacity: 1; }
-  100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+
+/* CrownCases logo image on card back */
+.card-back-face .cc-logo-img {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(240,180,41,.5));
+  z-index: 2;
+}
+
+/* Card showing back = rotated 180 on inner */
+.card-3d-wrapper.face-down .card-3d-inner {
+  transform: rotateY(180deg);
+}
+
+/* ─────────────────────────────────────────────────────
+   SHOE ELEMENT — stacked cards with logo
+───────────────────────────────────────────────────── */
+#shoe-element {
+  position: absolute;
+  top: 18px;
+  right: 64px;
+  width: 80px;
+  height: 116px;
+  z-index: 20;
+  cursor: default;
+}
+
+/* Each stacked card layer */
+.shoe-stack-card {
+  position: absolute;
+  left: 0; right: 0;
+  height: 108px;
+  border-radius: 7px;
+  background: linear-gradient(145deg, #0a0d18 0%, #131828 55%, #0a0d18 100%);
+  border: 1.5px solid rgba(240,180,41,.35);
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 7px, rgba(240,180,41,.04) 7px, rgba(240,180,41,.04) 8px),
+    repeating-linear-gradient(-45deg, transparent, transparent 7px, rgba(240,180,41,.04) 7px, rgba(240,180,41,.04) 8px);
+}
+.shoe-stack-card:nth-child(1) { bottom: 0px; box-shadow: 0 10px 28px rgba(0,0,0,.8), 0 0 18px rgba(240,180,41,.08); }
+.shoe-stack-card:nth-child(2) { bottom: 4px; transform: rotate(-1.2deg); opacity: .85; }
+.shoe-stack-card:nth-child(3) { bottom: 7px; transform: rotate(1.8deg); opacity: .7; }
+.shoe-stack-card:nth-child(4) { bottom: 10px; transform: rotate(-0.8deg); opacity: .55; }
+
+/* Top card = logo display */
+.shoe-top-card {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0;
+  height: 108px;
+  border-radius: 7px;
+  background: linear-gradient(145deg, #0a0d18 0%, #131828 55%, #0a0d18 100%);
+  border: 1.5px solid rgba(240,180,41,.5);
+  box-shadow: 0 10px 28px rgba(0,0,0,.8), 0 0 22px rgba(240,180,41,.12), inset 0 1px 0 rgba(240,180,41,.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  overflow: hidden;
+  z-index: 5;
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 7px, rgba(240,180,41,.04) 7px, rgba(240,180,41,.04) 8px),
+    repeating-linear-gradient(-45deg, transparent, transparent 7px, rgba(240,180,41,.04) 7px, rgba(240,180,41,.04) 8px);
+}
+.shoe-top-card::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(240,180,41,.2);
+  border-radius: 4px;
+  pointer-events: none;
+}
+.shoe-logo-img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(240,180,41,.55));
+  position: relative;
+  z-index: 2;
+}
+.shoe-count-badge {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 7px;
+  font-weight: 900;
+  color: rgba(240,180,41,.75);
+  letter-spacing: 1px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Shuffle animation — whole stack shimmies */
+@keyframes shoeShake {
+  0%   { transform: translateX(0) rotate(0deg); }
+  8%   { transform: translateX(-5px) rotate(-2deg); }
+  18%  { transform: translateX(6px) rotate(2.5deg); }
+  28%  { transform: translateX(-6px) rotate(-2.5deg); }
+  38%  { transform: translateX(5px) rotate(2deg); }
+  48%  { transform: translateX(-4px) rotate(-1.5deg); }
+  58%  { transform: translateX(4px) rotate(1.5deg); }
+  68%  { transform: translateX(-3px) rotate(-1deg); }
+  78%  { transform: translateX(3px) rotate(1deg); }
+  90%  { transform: translateX(-1px) rotate(-.5deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+@keyframes shoeGlow {
+  0%, 100% { box-shadow: 0 10px 28px rgba(0,0,0,.8), 0 0 22px rgba(240,180,41,.12); }
+  50%       { box-shadow: 0 10px 28px rgba(0,0,0,.8), 0 0 40px rgba(240,180,41,.5); }
+}
+#shoe-element.shuffling {
+  animation: shoeShake 0.7s cubic-bezier(.36,.07,.19,.97);
+}
+#shoe-element.shuffling .shoe-top-card {
+  animation: shoeGlow 0.35s ease-in-out 2;
+}
+
+/* ─────────────────────────────────────────────────────
+   FLYING CARD (Shoe-to-Table)
+───────────────────────────────────────────────────── */
+.flying-card {
+  position: fixed;
+  width: 98px;
+  height: 140px;
+  z-index: 999;
+  pointer-events: none;
+  perspective: 800px;
+}
+.flying-card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+}
+.flying-card-front, .flying-card-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flying-card-front {
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.1);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  transform: rotateY(0deg);
+}
+.flying-card-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(145deg, #0a0d18 0%, #131828 50%, #0a0d18 100%);
+  border: 2px solid rgba(240,180,41,.4);
+  box-shadow: 0 12px 40px rgba(0,0,0,.75);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flying-card-back::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(240,180,41,.22);
+  border-radius: 5px;
+  background:
+    repeating-linear-gradient(45deg, transparent, transparent 7px, rgba(240,180,41,.05) 7px, rgba(240,180,41,.05) 8px),
+    repeating-linear-gradient(-45deg, transparent, transparent 7px, rgba(240,180,41,.05) 7px, rgba(240,180,41,.05) 8px);
+}
+.flying-card-back .cc-logo-img {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(240,180,41,.5));
+  z-index: 2;
 }
 
 /* Message overlay */
@@ -477,11 +700,6 @@ header {
   0% { transform: scale(.7) translateY(-10px); opacity: 0; }
   70% { transform: scale(1.05) translateY(2px); opacity: 1; }
   100% { transform: scale(1) translateY(0); opacity: 1; }
-}
-@keyframes sbWinFade {
-  0% { opacity: 1; }
-  70% { opacity: 1; }
-  100% { opacity: 0; }
 }
 
 /* Insufficient balance notification */
@@ -606,17 +824,14 @@ header {
 
 /* Split view */
 #split-view { display: none; }
-.split-hand-active .cards-row .card {
-  box-shadow: 0 0 0 3px #2dd4bf, 0 6px 20px rgba(0,0,0,.6);
+.split-hand-active .card-3d-wrapper {
+  filter: drop-shadow(0 0 8px #2dd4bf);
 }
 .split-hand-active .score-bubble {
   border-color: #2dd4bf;
   color: #2dd4bf;
 }
-.split-hand-done .score-bubble {
-  opacity: 0.55;
-}
-.split-hand-done .cards-row .card {
+.split-hand-done {
   opacity: 0.55;
 }
 </style>
@@ -717,7 +932,6 @@ header {
       </div>
 
       <div class="sidebet-list">
-
         <!-- Perfect Pairs -->
         <div class="sb-card" id="sbcard-pp">
           <div class="sb-card-top">
@@ -805,7 +1019,6 @@ header {
             <button class="sb-lock-btn" id="lock-b7" onclick="toggleSbLock('b7')">🔓 Lock</button>
           </div>
         </div>
-
       </div>
 
       <div class="sidebet-note">Side bets are included in total wager. Lock a bet to auto-repeat it each round. Bets reset to 0 when manually cleared.</div>
@@ -813,7 +1026,20 @@ header {
   </div>
 
   <!-- GAME AREA -->
-  <div class="game-area">
+  <div class="game-area" id="game-area">
+
+    <!-- Physical Shoe — card stack -->
+    <div id="shoe-element">
+      <!-- Offset background cards for depth -->
+      <div class="shoe-stack-card"></div>
+      <div class="shoe-stack-card"></div>
+      <div class="shoe-stack-card"></div>
+      <!-- Top card with logo -->
+      <div class="shoe-top-card">
+        <img class="shoe-logo-img" src="https://www.image2url.com/r2/default/images/1776655301162-ddbd07c1-03ed-490d-a93d-fd87a895439b.png" alt="CrownCases" onerror="this.style.display='none'">
+        <div class="shoe-count-badge" id="shoe-count-badge">6 DECK</div>
+      </div>
+    </div>
 
     <!-- Dealer -->
     <div class="hand-section">
@@ -843,10 +1069,9 @@ header {
     <!-- Player -->
     <div class="hand-section" id="player-section">
       <div class="hand-label">YOU</div>
-      <!-- Normal single-hand view -->
       <div class="cards-row" id="player-cards"></div>
       <div class="score-bubble" id="player-score">—</div>
-      <!-- Split view: two hands side by side (hidden unless splitting) -->
+      <!-- Split view -->
       <div id="split-view" style="display:none; gap:28px; align-items:flex-end; justify-content:center; flex-wrap:wrap;">
         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
           <div class="cards-row" id="split-hand1-cards"></div>
@@ -920,7 +1145,6 @@ header {
 <div class="modal-backdrop" id="settings-modal">
   <div class="modal">
     <h2>⚙️ Settings</h2>
-
     <div class="settings-row">
       <div>
         <div class="settings-label">Card Animation Speed</div>
@@ -932,7 +1156,6 @@ header {
         <option value="slow">Slow</option>
       </select>
     </div>
-
     <div class="settings-row">
       <div>
         <div class="settings-label">AI Advisor</div>
@@ -940,7 +1163,6 @@ header {
       </div>
       <div class="toggle on" id="toggle-ai" onclick="toggleSetting('ai')"></div>
     </div>
-
     <div class="settings-row">
       <div>
         <div class="settings-label">Sound Effects</div>
@@ -948,7 +1170,6 @@ header {
       </div>
       <div class="toggle" id="toggle-sound" onclick="toggleSetting('sound')"></div>
     </div>
-
     <div class="settings-row">
       <div>
         <div class="settings-label">Dealer Rules</div>
@@ -959,7 +1180,6 @@ header {
         <option value="h17">Hit on Soft 17</option>
       </select>
     </div>
-
     <button class="modal-close" onclick="closeModal('settings-modal')">Save &amp; Close</button>
   </div>
 </div>
@@ -969,38 +1189,14 @@ header {
   <div class="modal">
     <h2>📊 Session Stats</h2>
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-val" id="stat-rounds">0</div>
-        <div class="stat-lbl">Total Rounds</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-wins">0</div>
-        <div class="stat-lbl">Wins</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-losses">0</div>
-        <div class="stat-lbl">Losses</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-pushes">0</div>
-        <div class="stat-lbl">Pushes</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-winrate">0%</div>
-        <div class="stat-lbl">Win Rate</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-net" style="color:var(--green)">$0</div>
-        <div class="stat-lbl">Net P/L</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-wagered">$0</div>
-        <div class="stat-lbl">Total Wagered</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="stat-rtp">—</div>
-        <div class="stat-lbl">Session RTP</div>
-      </div>
+      <div class="stat-card"><div class="stat-val" id="stat-rounds">0</div><div class="stat-lbl">Total Rounds</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-wins">0</div><div class="stat-lbl">Wins</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-losses">0</div><div class="stat-lbl">Losses</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-pushes">0</div><div class="stat-lbl">Pushes</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-winrate">0%</div><div class="stat-lbl">Win Rate</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-net" style="color:var(--green)">$0</div><div class="stat-lbl">Net P/L</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-wagered">$0</div><div class="stat-lbl">Total Wagered</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-rtp">—</div><div class="stat-lbl">Session RTP</div></div>
     </div>
     <button class="modal-close" onclick="closeModal('stats-modal')">Close</button>
   </div>
@@ -1015,18 +1211,16 @@ let dealerHand = [];
 let splitHand = [];
 let playingSplit = false;
 let splitAces = false;
-let hand1Doubled = false;   // doubled on split hand 1
-let hand2Doubled = false;   // doubled on split hand 2
+let hand1Doubled = false;
+let hand2Doubled = false;
 let gameOver = true;
 let roundActive = false;
 let insuranceBet = 0;
 let roundNumber = 0;
 let gameHistory = [];
 
-// Side bet locks — persist each round
 const sbLocks = { pp: false, '21p3': false, ll: false, b7: false };
 
-// Settings
 let settings = {
   speed: 'normal',
   ai: true,
@@ -1035,13 +1229,28 @@ let settings = {
   decks: 6
 };
 
-// Stats
 let stats = { total: 0, wins: 0, losses: 0, pushes: 0, wagered: 0, net: 0 };
 
-// Provably fair
 let serverSeed = '';
 let clientSeed = '';
 let serverSeedRevealed = '';
+
+// ── SHOE VISUAL ─────────────────────────────────────────────────────────────
+function updateShoeVisual() {
+  const badge = document.getElementById('shoe-count-badge');
+  if (!badge) return;
+  const remaining = Math.max(0, shoe.length - shoeIndex);
+  const total = shoe.length || 1;
+  const pct = Math.round((remaining / total) * 100);
+  badge.textContent = pct + '% LEFT';
+}
+
+async function triggerShuffleShuffle() {
+  const shoeEl = document.getElementById('shoe-element');
+  shoeEl.classList.add('shuffling');
+  await sleep(800);
+  shoeEl.classList.remove('shuffling');
+}
 
 // ── SOUNDS ─────────────────────────────────────────────────────────────────
 function playSound(type) {
@@ -1069,6 +1278,12 @@ function playSound(type) {
       o.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.3);
       g.gain.setValueAtTime(0.15, ctx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    } else if (type === 'flip') {
+      o.type = 'sine';
+      o.frequency.setValueAtTime(600, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.06);
+      g.gain.setValueAtTime(0.08, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
     }
     o.start(); o.stop(ctx.currentTime + 0.5);
   } catch(e) {}
@@ -1123,13 +1338,16 @@ async function initShoe() {
   await initProvablyFair();
   shoe = await buildShoe();
   shoeIndex = 0;
+  updateShoeVisual();
 }
 
 function drawCard() {
   if (shoeIndex >= shoe.length - 26) {
-    initShoe(); // async, will complete for next hand
+    initShoe();
   }
-  return shoe[shoeIndex++];
+  shoeIndex++;
+  updateShoeVisual();
+  return shoe[shoeIndex - 1];
 }
 
 function cardValue(card) {
@@ -1160,63 +1378,205 @@ function isSoft(hand) {
 function suitSymbol(suit) { return {H:'♥',D:'♦',C:'♣',S:'♠'}[suit] || ''; }
 function suitColor(suit) { return ['H','D'].includes(suit) ? '#e53e3e' : '#1a1a2e'; }
 
-function renderCardHTML(card) {
+// ── CARD HTML GENERATORS ───────────────────────────────────────────────────
+function cardFaceInnerHTML(card) {
   const sym = suitSymbol(card.suit);
   const col = suitColor(card.suit);
-  return `<div class="card">
+  return `
     <div style="position:absolute;top:7px;left:9px;font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:${col};line-height:1">${card.rank}<br><span style="font-size:16px">${sym}</span></div>
     <div style="font-size:44px;color:${col}">${sym}</div>
     <div style="position:absolute;bottom:7px;right:9px;font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:${col};line-height:1;transform:rotate(180deg)">${card.rank}<br><span style="font-size:16px">${sym}</span></div>
-  </div>`;
+  `;
 }
 
-function hiddenCardHTML() {
-  return `<div class="card hidden"></div>`;
+// Build a 3D wrapper card element (no animation yet)
+function createCard3D(card, faceDown = false) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'card-3d-wrapper' + (faceDown ? ' face-down' : '');
+
+  const inner = document.createElement('div');
+  inner.className = 'card-3d-inner';
+
+  const front = document.createElement('div');
+  front.className = 'card-face';
+  if (card) front.innerHTML = cardFaceInnerHTML(card);
+
+  const back = document.createElement('div');
+  back.className = 'card-back-face';
+  const logoImg = document.createElement('img');
+  logoImg.className = 'cc-logo-img';
+  logoImg.src = 'https://www.image2url.com/r2/default/images/1776655301162-ddbd07c1-03ed-490d-a93d-fd87a895439b.png';
+  logoImg.alt = 'CrownCases';
+  logoImg.onerror = function() { this.style.display = 'none'; };
+  back.appendChild(logoImg);
+
+  inner.appendChild(front);
+  inner.appendChild(back);
+  wrapper.appendChild(inner);
+  return wrapper;
+}
+
+// Fan out cards in a container
+function applyFanLayout(container) {
+  const cards = container.querySelectorAll('.card-3d-wrapper');
+  const n = cards.length;
+  if (n === 0) return;
+  const fanSpread = Math.min(14, 120 / n); // degrees total
+  const fanStart = -((n - 1) / 2) * fanSpread;
+  const overlapPx = Math.min(32, 280 / n);
+
+  cards.forEach((card, i) => {
+    const rot = fanStart + i * fanSpread;
+    const tx = i * (98 - overlapPx);
+    card.style.transform = `translateX(${tx}px) rotate(${rot}deg)`;
+    card.style.zIndex = i;
+    card.style.marginLeft = i === 0 ? '0' : `-${98 - overlapPx}px`;
+  });
+  // Reset container width
+  if (n > 1) {
+    container.style.minWidth = (98 + (n - 1) * (98 - overlapPx) + 20) + 'px';
+  }
+}
+
+// ── SHOE-TO-TABLE FLYING CARD ANIMATION ────────────────────────────────────
+function getShoeRect() {
+  const el = document.getElementById('shoe-element');
+  return el ? el.getBoundingClientRect() : { left: 0, top: 0, width: 72, height: 100 };
+}
+
+async function dealCardWithAnimation(card, targetContainer, faceDown = false) {
+  return new Promise(resolve => {
+    const shoeRect = getShoeRect();
+    const delay = getCardDelay();
+
+    // Start position: centre of shoe
+    const startX = shoeRect.left + shoeRect.width / 2 - 49;
+    const startY = shoeRect.top + shoeRect.height / 2 - 70;
+
+    // Create permanent 3D card element in the container
+    const cardEl = createCard3D(card, true); // always start face-down
+    cardEl.style.opacity = '0';
+    cardEl.style.pointerEvents = 'none';
+    targetContainer.appendChild(cardEl);
+    applyFanLayout(targetContainer);
+
+    // Get destination from the card's eventual position
+    const destRect = cardEl.getBoundingClientRect();
+    const destX = destRect.left;
+    const destY = destRect.top;
+
+    // Create the flying card
+    const flyer = document.createElement('div');
+    flyer.className = 'flying-card';
+    flyer.style.cssText = `left:${startX}px;top:${startY}px;transform:scale(0.85) rotate(-5deg);`;
+
+    const flyerInner = document.createElement('div');
+    flyerInner.className = 'flying-card-inner';
+    flyerInner.style.transform = 'rotateY(180deg)'; // starts showing back
+
+    const flyerFront = document.createElement('div');
+    flyerFront.className = 'flying-card-front';
+    if (card && !faceDown) flyerFront.innerHTML = cardFaceInnerHTML(card);
+
+    const flyerBack = document.createElement('div');
+    flyerBack.className = 'flying-card-back';
+    const flyerLogoImg = document.createElement('img');
+    flyerLogoImg.className = 'cc-logo-img';
+    flyerLogoImg.src = 'https://www.image2url.com/r2/default/images/1776655301162-ddbd07c1-03ed-490d-a93d-fd87a895439b.png';
+    flyerLogoImg.alt = 'CrownCases';
+    flyerLogoImg.onerror = function() { this.style.display = 'none'; };
+    flyerBack.appendChild(flyerLogoImg);
+
+    flyerInner.appendChild(flyerFront);
+    flyerInner.appendChild(flyerBack);
+    flyer.appendChild(flyerInner);
+    document.body.appendChild(flyer);
+
+    // Animate position
+    const duration = delay * 1.4;
+    const flipTime = faceDown ? Infinity : duration * 0.6; // flip at 60% travel
+
+    let startTs = null;
+    let flipped = false;
+
+    function easeOutBack(t) {
+      const c1 = 1.70158, c3 = c1 + 1;
+      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    }
+
+    function frame(ts) {
+      if (!startTs) startTs = ts;
+      const elapsed = ts - startTs;
+      const t = Math.min(elapsed / duration, 1);
+      const e = easeOutBack(t);
+
+      const cx = startX + (destX - startX) * e;
+      const cy = startY + (destY - startY) * e - Math.sin(Math.PI * t) * 40; // arc
+      const rot = -5 + t * 8; // slight spin
+      const scale = 0.85 + t * 0.15;
+
+      flyer.style.left = cx + 'px';
+      flyer.style.top = cy + 'px';
+      flyer.style.transform = `scale(${scale}) rotate(${rot}deg)`;
+
+      // Flip mid-flight
+      if (!faceDown && !flipped && elapsed >= flipTime) {
+        flipped = true;
+        flyerInner.style.transition = `transform ${duration * 0.38}ms cubic-bezier(0.23,1,0.32,1)`;
+        flyerInner.style.transform = 'rotateY(0deg)';
+        playSound('flip');
+      }
+
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        // Land: show real card, remove flyer
+        flyer.remove();
+        cardEl.style.opacity = '1';
+        if (!faceDown) {
+          cardEl.classList.remove('face-down');
+        }
+        playSound('deal');
+        resolve();
+      }
+    }
+
+    requestAnimationFrame(frame);
+  });
 }
 
 // ── ANIMATED CARD DEALING ─────────────────────────────────────────────────
 function getCardDelay() {
   const s = settings.speed;
-  if (s === 'fast') return 150;
-  if (s === 'slow') return 500;
-  return 280;
+  if (s === 'fast') return 180;
+  if (s === 'slow') return 580;
+  return 330;
 }
 
 async function dealCardsAnimated(revealDealer = false) {
   const dc = document.getElementById('dealer-cards');
   const pc = document.getElementById('player-cards');
-  const delay = getCardDelay();
-
   dc.innerHTML = '';
   pc.innerHTML = '';
+  dc.style.minWidth = '';
+  pc.style.minWidth = '';
 
-  await sleep(delay * 0.3);
-  pc.innerHTML += renderCardHTML(playerHand[0]);
-  playSound('deal');
+  const delay = getCardDelay();
 
-  await sleep(delay);
-  dc.innerHTML += renderCardHTML(dealerHand[0]);
-  playSound('deal');
-
-  await sleep(delay);
-  pc.innerHTML += renderCardHTML(playerHand[1]);
-  playSound('deal');
-
-  await sleep(delay);
-  if (!revealDealer) {
-    dc.innerHTML += hiddenCardHTML();
-  } else {
-    dc.innerHTML += renderCardHTML(dealerHand[1]);
-  }
-  playSound('deal');
+  await dealCardWithAnimation(playerHand[0], pc, false);
+  await sleep(delay * 0.5);
+  await dealCardWithAnimation(dealerHand[0], dc, false);
+  await sleep(delay * 0.5);
+  await dealCardWithAnimation(playerHand[1], pc, false);
+  await sleep(delay * 0.5);
+  await dealCardWithAnimation(dealerHand[1], dc, !revealDealer);
 
   updateScoreBubbles(revealDealer);
 }
 
-async function addCardAnimated(container, card) {
-  await sleep(getCardDelay() * 0.5);
-  container.innerHTML += renderCardHTML(card);
-  playSound('deal');
+async function addCardAnimated(container, card, faceDown = false) {
+  await sleep(getCardDelay() * 0.4);
+  await dealCardWithAnimation(card, container, faceDown);
 }
 
 function updateScoreBubbles(revealDealer) {
@@ -1236,13 +1596,32 @@ function renderHands(revealDealer = false) {
   const pc = document.getElementById('player-cards');
   dc.innerHTML = '';
   pc.innerHTML = '';
+  dc.style.minWidth = '';
+  pc.style.minWidth = '';
 
   dealerHand.forEach((c, i) => {
-    if (i === 1 && !revealDealer) dc.innerHTML += hiddenCardHTML();
-    else dc.innerHTML += renderCardHTML(c);
+    const el = createCard3D(c, i === 1 && !revealDealer);
+    dc.appendChild(el);
   });
-  playerHand.forEach(c => pc.innerHTML += renderCardHTML(c));
+  applyFanLayout(dc);
+
+  playerHand.forEach(c => {
+    const el = createCard3D(c, false);
+    pc.appendChild(el);
+  });
+  applyFanLayout(pc);
+
   updateScoreBubbles(revealDealer);
+}
+
+// Reveal the dealer's hole card with a flip animation
+function flipDealerHoleCard() {
+  const dc = document.getElementById('dealer-cards');
+  const cards = dc.querySelectorAll('.card-3d-wrapper');
+  if (cards.length < 2) return;
+  const hole = cards[1];
+  hole.classList.remove('face-down');
+  playSound('flip');
 }
 
 // ── UI HELPERS ─────────────────────────────────────────────────────────────
@@ -1292,59 +1671,41 @@ function hideSideBetToast() {
   container.innerHTML = '';
 }
 
-// Show side bet wins immediately on deal (preview only — payout at end of round)
 function previewSideBets() {
   const sb = getSideBetAmounts();
   const previews = [];
 
-  // Perfect Pairs — can evaluate immediately from first 2 cards
   if (sb.pp > 0) {
     const c1 = playerHand[0], c2 = playerHand[1];
-    if (c1.rank === c2.rank && c1.suit === c2.suit) {
-      previews.push({ icon: '💎', name: 'PERFECT PAIR', amount: sb.pp * 25, odds: '25:1', jackpot: false });
-    } else if (c1.rank === c2.rank && (['H','D'].includes(c1.suit)) === (['H','D'].includes(c2.suit))) {
-      previews.push({ icon: '🎨', name: 'COLOURED PAIR', amount: sb.pp * 12, odds: '12:1', jackpot: false });
-    } else if (c1.rank === c2.rank) {
-      previews.push({ icon: '♟️', name: 'MIXED PAIR', amount: sb.pp * 6, odds: '6:1', jackpot: false });
-    }
+    if (c1.rank === c2.rank && c1.suit === c2.suit) previews.push({ icon: '💎', name: 'PERFECT PAIR', amount: sb.pp * 25, odds: '25:1', jackpot: false });
+    else if (c1.rank === c2.rank && (['H','D'].includes(c1.suit)) === (['H','D'].includes(c2.suit))) previews.push({ icon: '🎨', name: 'COLOURED PAIR', amount: sb.pp * 12, odds: '12:1', jackpot: false });
+    else if (c1.rank === c2.rank) previews.push({ icon: '♟️', name: 'MIXED PAIR', amount: sb.pp * 6, odds: '6:1', jackpot: false });
   }
 
-  // 21+3 — needs dealer up card, available immediately
   if (sb.s21 > 0 && dealerHand.length > 0) {
     const three = [playerHand[0], playerHand[1], dealerHand[0]];
     const ranks = three.map(c => c.rank);
     const suits = three.map(c => c.suit);
     const allSame = suits.every(s => s === suits[0]);
-    const vals = three.map(c => {
-      if (c.rank === 'A') return 1;
-      if (['J','Q','K'].includes(c.rank)) return ['J','Q','K'].indexOf(c.rank) + 11;
-      return parseInt(c.rank);
-    }).sort((a,b) => a - b);
+    const vals = three.map(c => { if (c.rank === 'A') return 1; if (['J','Q','K'].includes(c.rank)) return ['J','Q','K'].indexOf(c.rank) + 11; return parseInt(c.rank); }).sort((a,b) => a - b);
     const isStraight = vals[2]-vals[1] === 1 && vals[1]-vals[0] === 1;
     const isTrips = ranks.every(r => r === ranks[0]);
-    if (isTrips && allSame)      previews.push({ icon: '🎰', name: 'SUITED TRIPS',    amount: sb.s21 * 100, odds: '100:1', jackpot: true });
-    else if (isStraight && allSame) previews.push({ icon: '🌈', name: 'STRAIGHT FLUSH', amount: sb.s21 * 40,  odds: '40:1',  jackpot: true });
-    else if (isTrips)            previews.push({ icon: '🃏', name: 'TRIPS',           amount: sb.s21 * 30,  odds: '30:1',  jackpot: false });
-    else if (isStraight)         previews.push({ icon: '📈', name: 'STRAIGHT',        amount: sb.s21 * 10,  odds: '10:1',  jackpot: false });
-    else if (allSame)            previews.push({ icon: '♠️', name: 'FLUSH',           amount: sb.s21 * 5,   odds: '5:1',   jackpot: false });
+    if (isTrips && allSame) previews.push({ icon: '🎰', name: 'SUITED TRIPS', amount: sb.s21 * 100, odds: '100:1', jackpot: true });
+    else if (isStraight && allSame) previews.push({ icon: '🌈', name: 'STRAIGHT FLUSH', amount: sb.s21 * 40, odds: '40:1', jackpot: true });
+    else if (isTrips) previews.push({ icon: '🃏', name: 'TRIPS', amount: sb.s21 * 30, odds: '30:1', jackpot: false });
+    else if (isStraight) previews.push({ icon: '📈', name: 'STRAIGHT', amount: sb.s21 * 10, odds: '10:1', jackpot: false });
+    else if (allSame) previews.push({ icon: '♠️', name: 'FLUSH', amount: sb.s21 * 5, odds: '5:1', jackpot: false });
   }
 
-  // Lucky Ladies — first 2 cards
   if (sb.ll > 0) {
     const c1 = playerHand[0], c2 = playerHand[1];
     const ps = handScore([c1, c2]);
-    if (c1.rank === 'Q' && c2.rank === 'Q' && c1.suit === 'H' && c2.suit === 'H') {
-      previews.push({ icon: '👑', name: 'QUEEN OF HEARTS!', amount: sb.ll * 200, odds: '200:1', jackpot: true });
-    } else if (c1.rank === 'Q' && c2.rank === 'Q') {
-      previews.push({ icon: '👸', name: 'PAIR OF QUEENS', amount: sb.ll * 25, odds: '25:1', jackpot: false });
-    } else if (ps === 20) {
-      previews.push({ icon: '🍀', name: 'LUCKY LADIES (20)', amount: sb.ll * 4, odds: '4:1', jackpot: false });
-    }
+    if (c1.rank === 'Q' && c2.rank === 'Q' && c1.suit === 'H' && c2.suit === 'H') previews.push({ icon: '👑', name: 'QUEEN OF HEARTS!', amount: sb.ll * 200, odds: '200:1', jackpot: true });
+    else if (c1.rank === 'Q' && c2.rank === 'Q') previews.push({ icon: '👸', name: 'PAIR OF QUEENS', amount: sb.ll * 25, odds: '25:1', jackpot: false });
+    else if (ps === 20) previews.push({ icon: '🍀', name: 'LUCKY LADIES (20)', amount: sb.ll * 4, odds: '4:1', jackpot: false });
   }
 
-  if (previews.length > 0) {
-    showSideBetWins(previews, false); // no auto-hide — stays until player acts
-  }
+  if (previews.length > 0) showSideBetWins(previews, false);
 }
 
 function updateBalance() {
@@ -1380,7 +1741,6 @@ function updateSbTotal() {
   const total = ids.reduce((s,id) => s + (parseFloat(document.getElementById(id).value)||0), 0);
   document.getElementById('sb-total-display').textContent = '$' + total.toFixed(0);
 
-  // Update card borders
   ['pp','21p3','ll','b7'].forEach(key => {
     const card = document.getElementById('sbcard-' + key);
     const val = parseFloat(document.getElementById('sb-' + key).value) || 0;
@@ -1388,7 +1748,6 @@ function updateSbTotal() {
     card.classList.toggle('locked-bet', sbLocks[key]);
   });
 
-  // Reflect combined total in main bet label
   const mainBet = parseFloat(document.getElementById('bet-input').value) || 0;
   const combined = mainBet + total;
   document.getElementById('bet-usdc-label').textContent = combined > mainBet
@@ -1402,12 +1761,10 @@ function toggleSbLock(key) {
   const val = parseFloat(inp.value) || 0;
 
   if (sbLocks[key]) {
-    // Unlock
     sbLocks[key] = false;
     btn.textContent = '🔓 Lock';
     btn.classList.remove('locked');
   } else {
-    // Lock — must have a value
     if (val <= 0) { inp.focus(); return; }
     sbLocks[key] = true;
     btn.textContent = '🔒 Locked';
@@ -1425,13 +1782,9 @@ function getSideBetAmounts() {
   };
 }
 
-// After a round, restore locked side bet amounts (they persisted — no action needed because input stays)
-// Clear unlocked side bets
 function resetUnlockedSideBets() {
   ['pp','21p3','ll','b7'].forEach(key => {
-    if (!sbLocks[key]) {
-      document.getElementById('sb-' + key).value = 0;
-    }
+    if (!sbLocks[key]) document.getElementById('sb-' + key).value = 0;
   });
   updateSbTotal();
 }
@@ -1450,9 +1803,7 @@ function lockBettingUI() {
   roundActive = true;
   document.getElementById('bet-input').disabled = true;
   document.getElementById('bet-btn').disabled = true;
-  ['mult-btn'].forEach(() => {});
   document.querySelectorAll('.mult-btn, .chip').forEach(b => b.disabled = true);
-  // Lock all side bet inputs and lock buttons
   ['pp','21p3','ll','b7'].forEach(key => {
     const inp = document.getElementById('sb-' + key);
     const btn = document.getElementById('lock-' + key);
@@ -1465,7 +1816,6 @@ function unlockBettingUI() {
   roundActive = false;
   document.getElementById('bet-input').disabled = false;
   document.querySelectorAll('.mult-btn, .chip').forEach(b => b.disabled = false);
-  // Unlock side bet inputs and lock buttons
   ['pp','21p3','ll','b7'].forEach(key => {
     const inp = document.getElementById('sb-' + key);
     const btn = document.getElementById('lock-' + key);
@@ -1512,11 +1862,10 @@ function aiAdvise() {
     const r = playerHand[0].rank;
     if (r === 'A' || r === '8') { hint = '✂️ Split ' + r + 's — optimal play.'; rec = 'split-btn'; }
     else if (r === '5') { hint = 'Double Down, never split 5s.'; rec = 'double-btn'; }
-    else if (r === '10' || r === 'J' || r === 'Q' || r === 'K') { hint = 'Stand — never split 10-value cards.'; rec = 'stand-btn'; }
+    else if (['10','J','Q','K'].includes(r)) { hint = 'Stand — never split 10-value cards.'; rec = 'stand-btn'; }
   }
 
   document.getElementById('ai-hint-text').textContent = '🤖 AI: ' + hint;
-
   ['hit-btn','stand-btn','double-btn','split-btn','surrender-btn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.remove('recommended');
@@ -1532,21 +1881,12 @@ async function placeBet() {
   if (!gameOver) return;
 
   const betVal = parseFloat(document.getElementById('bet-input').value);
-  if (isNaN(betVal) || betVal < 1) {
-    showInsufficientBalance();
-    return;
-  }
-  if (betVal > balance) {
-    showInsufficientBalance();
-    return;
-  }
+  if (isNaN(betVal) || betVal < 1) { showInsufficientBalance(); return; }
+  if (betVal > balance) { showInsufficientBalance(); return; }
 
   const sb = getSideBetAmounts();
   const totalSideBets = sb.pp + sb.s21 + sb.ll + sb.b7;
-  if (betVal + totalSideBets > balance) {
-    showInsufficientBalance();
-    return;
-  }
+  if (betVal + totalSideBets > balance) { showInsufficientBalance(); return; }
 
   currentBet = betVal;
   insuranceBet = 0;
@@ -1556,11 +1896,16 @@ async function placeBet() {
   gameOver = false;
   splitAces = false;
 
-  // Lock all betting controls for the duration of the round
   lockBettingUI();
 
+  // Shuffle animation when starting a new shoe
+  const wasNewShoe = shoeIndex === 0;
   if (shoe.length === 0 || shoeIndex === 0) await initShoe();
-  if (shoeIndex > shoe.length * 0.65) await initShoe();
+  if (shoeIndex > shoe.length * 0.65) {
+    await triggerShuffleShuffle();
+    await initShoe();
+  }
+  if (wasNewShoe) await triggerShuffleShuffle();
 
   playerHand = [drawCard(), drawCard()];
   dealerHand = [drawCard(), drawCard()];
@@ -1571,9 +1916,7 @@ async function placeBet() {
 
   await dealCardsAnimated(false);
 
-  // Show side bet wins immediately if any hit on the opening hand
   previewSideBets();
-
   toggleActions(true);
   aiAdvise();
   await checkNaturalBlackjack();
@@ -1583,7 +1926,6 @@ async function checkNaturalBlackjack() {
   const ps = handScore(playerHand);
   const ds = handScore(dealerHand);
 
-  // If dealer shows an Ace, offer insurance before revealing
   if (dealerHand[0].rank === 'A' && ps !== 21) {
     toggleActions(false);
     await offerInsurance();
@@ -1591,17 +1933,18 @@ async function checkNaturalBlackjack() {
   }
 
   if (ps === 21 || ds === 21) {
-    renderHands(true);
+    flipDealerHoleCard();
+    await sleep(450);
+    updateScoreBubbles(true);
     if (ps === 21 && ds === 21) {
       showMessage("PUSH — Both Blackjack!", 'tie');
       balance += currentBet;
       endRound('Push', 0);
     } else if (ps === 21) {
       showMessage("🎉 BLACKJACK! 3:2!", 'win');
-      const payout = currentBet * 2.5;
-      balance += payout;
-      endRound('Win', payout - currentBet);
-    } else if (ds === 21) {
+      balance += currentBet * 2.5;
+      endRound('Win', currentBet * 1.5);
+    } else {
       showMessage("Dealer Blackjack!", 'lose');
       endRound('Loss', -currentBet);
     }
@@ -1614,54 +1957,57 @@ async function checkNaturalBlackjack() {
 // ── INSURANCE ──────────────────────────────────────────────────────────────
 async function offerInsurance() {
   const insuranceCost = currentBet / 2;
-  if (balance < insuranceCost) {
-    // Can't afford insurance, skip straight to play
-    await continueAfterInsuranceDecision(false);
-    return;
-  }
+  if (balance < insuranceCost) { await continueAfterInsuranceDecision(false); return; }
   document.getElementById('insurance-cost-label').textContent = '$' + insuranceCost.toFixed(2);
   document.getElementById('insurance-modal').classList.add('open');
 }
 
 async function takeInsurance(yes) {
   document.getElementById('insurance-modal').classList.remove('open');
-  const ds = handScore(dealerHand);
-
   if (yes) {
     insuranceBet = currentBet / 2;
     balance -= insuranceBet;
-    // Update total bet display
     updateBalance();
   }
+  await continueAfterInsuranceDecision(yes);
+}
 
-  // Now check if dealer has blackjack
+async function continueAfterInsuranceDecision(tookInsurance) {
+  const ds = handScore(dealerHand);
   if (ds === 21) {
-    renderHands(true);
-    if (yes) {
-      // Insurance wins 2:1 → player gets back 3× the insurance bet (bet + 2× payout)
-      const insurancePayout = insuranceBet * 3;
-      balance += insurancePayout;
-      showMessage("Dealer BJ — Insurance Wins!", 'win');
-      endRound('Loss', -currentBet + (insurancePayout - insuranceBet));
+    flipDealerHoleCard();
+    await sleep(400);
+    updateScoreBubbles(true);
+    if (tookInsurance) {
+      balance += insuranceBet * 3;
+      showMessage("Dealer BJ — Insurance pays!", 'tie');
+      endRound('Push', 0);
     } else {
       showMessage("Dealer Blackjack!", 'lose');
       endRound('Loss', -currentBet);
     }
   } else {
-    // No dealer blackjack — insurance bet lost if taken, continue round
-    // insurance bet is already deducted and stays lost
-    toggleActions(true);
-    aiAdvise();
+    if (tookInsurance) {
+      // Insurance loses (dealer no BJ), but game continues
+    }
+    const ps = handScore(playerHand);
+    if (ps === 21) {
+      flipDealerHoleCard();
+      await sleep(400);
+      updateScoreBubbles(true);
+      showMessage("🎉 BLACKJACK! 3:2!", 'win');
+      balance += currentBet * 2.5;
+      endRound('Win', currentBet * 1.5);
+    } else {
+      toggleActions(true);
+      aiAdvise();
+    }
   }
 }
 
-async function doubleDown() {
-  if (gameOver || playerHand.length !== 2 || balance < currentBet) return;
+async function doubleDown(inSplit = false) {
+  if (gameOver) return;
   hideSideBetToast();
-
-  const inSplit = splitHand.length > 0;
-
-  // Deduct one extra bet (same as currentBet per hand, no sides)
   balance -= currentBet;
   updateBalance();
   toggleActions(false);
@@ -1669,29 +2015,24 @@ async function doubleDown() {
   const newCard = drawCard();
 
   if (inSplit && !playingSplit) {
-    // Doubling on split hand 1
     hand1Doubled = true;
     playerHand.push(newCard);
-    const h1 = document.getElementById('split-hand1-cards');
-    await addCardAnimated(h1, newCard);
+    await addCardAnimated(document.getElementById('split-hand1-cards'), newCard);
     updateSplitScores();
     await sleep(300);
     setSplitDone(1);
     await sleep(300);
     await startSplitHand2();
   } else if (inSplit && playingSplit) {
-    // Doubling on split hand 2
     hand2Doubled = true;
     splitHand.push(newCard);
-    const h2 = document.getElementById('split-hand2-cards');
-    await addCardAnimated(h2, newCard);
+    await addCardAnimated(document.getElementById('split-hand2-cards'), newCard);
     updateSplitScores();
     await sleep(300);
     setSplitDone(2);
     await sleep(300);
     await dealerTurnSplit();
   } else {
-    // Normal double — double the total bet
     currentBet *= 2;
     playerHand.push(newCard);
     await addCardAnimated(document.getElementById('player-cards'), newCard);
@@ -1723,7 +2064,7 @@ async function playerSplits() {
   if (gameOver || playerHand.length !== 2 || playerHand[0].rank !== playerHand[1].rank || balance < currentBet) return;
   hideSideBetToast();
 
-  balance -= currentBet; // second hand bet
+  balance -= currentBet;
   updateBalance();
 
   const isAceSplit = playerHand[0].rank === 'A';
@@ -1732,29 +2073,23 @@ async function playerSplits() {
   hand1Doubled = false;
   hand2Doubled = false;
 
-  // Build both hands: each gets the original card + one new card
   const card1a = { ...playerHand[0] };
   const card1b = drawCard();
   const card2a = { ...playerHand[1] };
   const card2b = drawCard();
 
-  playerHand = [card1a, card1b];   // hand 1 (active first)
-  splitHand  = [card2a, card2b];   // hand 2 (played second)
+  playerHand = [card1a, card1b];
+  splitHand  = [card2a, card2b];
 
-  // Switch to split view
   document.getElementById('player-cards').style.display = 'none';
   document.getElementById('player-score').style.display = 'none';
   const splitView = document.getElementById('split-view');
   splitView.style.display = 'flex';
 
-  // Render both hands
   renderSplitHands();
-
-  // Highlight hand 1 as active
   setSplitActive(1);
 
   if (isAceSplit) {
-    // Aces: no hit/stand — both hands auto-complete, go straight to dealer
     toggleActions(false);
     document.getElementById('ai-hint-text').textContent = '🤖 AI: Aces split — one card each, auto-standing.';
     await sleep(600);
@@ -1777,8 +2112,12 @@ async function playerSplits() {
 function renderSplitHands() {
   const h1 = document.getElementById('split-hand1-cards');
   const h2 = document.getElementById('split-hand2-cards');
-  h1.innerHTML = playerHand.map(c => renderCardHTML(c)).join('');
-  h2.innerHTML = splitHand.map(c => renderCardHTML(c)).join('');
+  h1.innerHTML = '';
+  h2.innerHTML = '';
+  playerHand.forEach(c => h1.appendChild(createCard3D(c, false)));
+  splitHand.forEach(c => h2.appendChild(createCard3D(c, false)));
+  applyFanLayout(h1);
+  applyFanLayout(h2);
   updateSplitScores();
 }
 
@@ -1809,7 +2148,6 @@ function setSplitDone(handNum) {
 }
 
 function exitSplitView() {
-  // Restore normal single-hand view
   document.getElementById('player-cards').style.display = '';
   document.getElementById('player-score').style.display = '';
   document.getElementById('split-view').style.display = 'none';
@@ -1826,20 +2164,14 @@ async function playerHits() {
   const newCard = drawCard();
 
   if (splitHand.length > 0 && !playingSplit) {
-    // Hitting on hand 1 during split
     playerHand.push(newCard);
-    const h1 = document.getElementById('split-hand1-cards');
-    await addCardAnimated(h1, newCard);
+    await addCardAnimated(document.getElementById('split-hand1-cards'), newCard);
+    applyFanLayout(document.getElementById('split-hand1-cards'));
     updateSplitScores();
     const ps = handScore(playerHand);
-    if (ps > 21) {
+    if (ps > 21 || ps === 21) {
       setSplitDone(1);
       await sleep(400);
-      // Hand 1 bust — move to hand 2
-      await startSplitHand2();
-    } else if (ps === 21) {
-      setSplitDone(1);
-      await sleep(300);
       await startSplitHand2();
     } else {
       toggleActions(true);
@@ -1848,19 +2180,14 @@ async function playerHits() {
       aiAdvise();
     }
   } else if (splitHand.length > 0 && playingSplit) {
-    // Hitting on hand 2 during split
     splitHand.push(newCard);
-    const h2 = document.getElementById('split-hand2-cards');
-    await addCardAnimated(h2, newCard);
+    await addCardAnimated(document.getElementById('split-hand2-cards'), newCard);
+    applyFanLayout(document.getElementById('split-hand2-cards'));
     updateSplitScores();
     const ps = handScore(splitHand);
-    if (ps > 21) {
+    if (ps > 21 || ps === 21) {
       setSplitDone(2);
       await sleep(400);
-      await dealerTurnSplit();
-    } else if (ps === 21) {
-      setSplitDone(2);
-      await sleep(300);
       await dealerTurnSplit();
     } else {
       toggleActions(true);
@@ -1869,9 +2196,9 @@ async function playerHits() {
       aiAdvise();
     }
   } else {
-    // Normal (no split) hit
     playerHand.push(newCard);
     await addCardAnimated(document.getElementById('player-cards'), newCard);
+    applyFanLayout(document.getElementById('player-cards'));
     updateScoreBubbles(false);
     aiAdvise();
     const ps = handScore(playerHand);
@@ -1903,7 +2230,6 @@ async function startSplitHand2() {
   document.getElementById('split-btn').disabled = true;
   document.getElementById('surrender-btn').disabled = true;
   document.getElementById('ai-hint-text').textContent = '🤖 AI: Playing Hand 2 — Hit or Stand.';
-  // For aiAdvise, temporarily swap so it reads hand 2
   const savedHand1 = playerHand;
   playerHand = splitHand;
   aiAdvise();
@@ -1915,20 +2241,16 @@ function playerStands() {
   hideSideBetToast();
 
   if (splitHand.length > 0 && !playingSplit) {
-    // Standing on hand 1, move to hand 2
     setSplitDone(1);
     startSplitHand2();
     return;
   }
-
   if (splitHand.length > 0 && playingSplit) {
-    // Standing on hand 2, run dealer
     setSplitDone(2);
     toggleActions(false);
     dealerTurnSplit();
     return;
   }
-
   toggleActions(false);
   dealerTurn();
 }
@@ -1936,15 +2258,11 @@ function playerStands() {
 async function dealerTurnSplit() {
   toggleActions(false);
 
-  // ── Keep split view up but reveal the dealer's hole card ──
-  // Reveal dealer hidden card in the dealer row
   const dc = document.getElementById('dealer-cards');
-  dc.innerHTML = dealerHand.map(c => renderCardHTML(c)).join('');
-  const dsEl = document.getElementById('dealer-score');
-  dsEl.textContent = handScore(dealerHand);
-  dsEl.className = 'score-bubble';
+  flipDealerHoleCard();
+  await sleep(500);
+  updateScoreBubbles(true);
 
-  // Make sure split view is still showing both completed hands
   document.getElementById('split-view').style.display = 'flex';
   document.getElementById('player-cards').style.display = 'none';
   document.getElementById('player-score').style.display = 'none';
@@ -1955,13 +2273,11 @@ async function dealerTurnSplit() {
     const ds = handScore(dealerHand);
     const soft = isSoft(dealerHand);
     if (!(ds < 17 || (hitOnSoft17 && ds === 17 && soft))) break;
-    await sleep(getCardDelay());
     const newCard = drawCard();
     dealerHand.push(newCard);
-    dc.innerHTML += renderCardHTML(newCard);
-    playSound('deal');
-    dsEl.textContent = handScore(dealerHand);
-    dsEl.className = 'score-bubble' + (handScore(dealerHand) > 21 ? ' bust' : '');
+    await addCardAnimated(dc, newCard, false);
+    applyFanLayout(dc);
+    updateScoreBubbles(true);
   }
 
   const ds = handScore(dealerHand);
@@ -1969,29 +2285,16 @@ async function dealerTurnSplit() {
   const hand2Score = handScore(splitHand);
   await sleep(300);
 
-  // Evaluate both hands independently
   let net = 0;
   const results = [];
 
   function evalHand(ps, betAmt, label) {
-    if (ps > 21) {
-      results.push(`${label}: Bust`);
-      return -betAmt;
-    } else if (ds > 21 || ps > ds) {
-      balance += betAmt * 2;
-      results.push(`${label}: Win!`);
-      return betAmt;
-    } else if (ps === ds) {
-      balance += betAmt;
-      results.push(`${label}: Push`);
-      return 0;
-    } else {
-      results.push(`${label}: Loss`);
-      return -betAmt;
-    }
+    if (ps > 21) { results.push(`${label}: Bust`); return -betAmt; }
+    else if (ds > 21 || ps > ds) { balance += betAmt * 2; results.push(`${label}: Win!`); return betAmt; }
+    else if (ps === ds) { balance += betAmt; results.push(`${label}: Push`); return 0; }
+    else { results.push(`${label}: Loss`); return -betAmt; }
   }
 
-  // Each split hand was bet at currentBet; doubled hands are 2× currentBet
   const hand1Bet = hand1Doubled ? currentBet * 2 : currentBet;
   const hand2Bet = hand2Doubled ? currentBet * 2 : currentBet;
   net += evalHand(hand1Score, hand1Bet, 'H1');
@@ -2013,7 +2316,10 @@ async function dealerTurnSplit() {
 
 async function dealerTurn() {
   toggleActions(false);
-  renderHands(true);
+
+  flipDealerHoleCard();
+  await sleep(500);
+  updateScoreBubbles(true);
 
   const dc = document.getElementById('dealer-cards');
   const hitOnSoft17 = settings.rules === 'h17';
@@ -2021,13 +2327,11 @@ async function dealerTurn() {
   while (true) {
     const ds = handScore(dealerHand);
     const soft = isSoft(dealerHand);
-    const shouldHit = ds < 17 || (hitOnSoft17 && ds === 17 && soft);
-    if (!shouldHit) break;
-    await sleep(getCardDelay());
+    if (!(ds < 17 || (hitOnSoft17 && ds === 17 && soft))) break;
     const newCard = drawCard();
     dealerHand.push(newCard);
-    dc.innerHTML += renderCardHTML(newCard);
-    playSound('deal');
+    await addCardAnimated(dc, newCard, false);
+    applyFanLayout(dc);
     updateScoreBubbles(true);
   }
 
@@ -2059,97 +2363,39 @@ function resolveSideBets() {
   const sb = getSideBetAmounts();
   const wins = [];
 
-  // ── Perfect Pairs ──────────────────────────────────────────────────────
   if (sb.pp > 0) {
     const c1 = playerHand[0], c2 = playerHand[1];
-    if (c1.rank === c2.rank && c1.suit === c2.suit) {
-      const profit = sb.pp * 25;
-      balance += sb.pp + profit;
-      wins.push({ icon: '💎', name: 'PERFECT PAIR', amount: profit, odds: '25:1', jackpot: false });
-    } else if (c1.rank === c2.rank && (['H','D'].includes(c1.suit)) === (['H','D'].includes(c2.suit))) {
-      const profit = sb.pp * 12;
-      balance += sb.pp + profit;
-      wins.push({ icon: '🎨', name: 'COLOURED PAIR', amount: profit, odds: '12:1', jackpot: false });
-    } else if (c1.rank === c2.rank) {
-      const profit = sb.pp * 6;
-      balance += sb.pp + profit;
-      wins.push({ icon: '♟️', name: 'MIXED PAIR', amount: profit, odds: '6:1', jackpot: false });
-    }
+    if (c1.rank === c2.rank && c1.suit === c2.suit) { const p = sb.pp*25; balance+=sb.pp+p; wins.push({icon:'💎',name:'PERFECT PAIR',amount:p,odds:'25:1',jackpot:false}); }
+    else if (c1.rank === c2.rank && (['H','D'].includes(c1.suit)) === (['H','D'].includes(c2.suit))) { const p=sb.pp*12; balance+=sb.pp+p; wins.push({icon:'🎨',name:'COLOURED PAIR',amount:p,odds:'12:1',jackpot:false}); }
+    else if (c1.rank === c2.rank) { const p=sb.pp*6; balance+=sb.pp+p; wins.push({icon:'♟️',name:'MIXED PAIR',amount:p,odds:'6:1',jackpot:false}); }
   }
 
-  // ── 21+3 ───────────────────────────────────────────────────────────────
   if (sb.s21 > 0 && dealerHand.length > 0) {
     const three = [playerHand[0], playerHand[1], dealerHand[0]];
-    const ranks = three.map(c => c.rank);
-    const suits = three.map(c => c.suit);
-    const allSame = suits.every(s => s === suits[0]);
-    const vals = three.map(c => {
-      if (c.rank === 'A') return 1;
-      if (['J','Q','K'].includes(c.rank)) return ['J','Q','K'].indexOf(c.rank) + 11;
-      return parseInt(c.rank);
-    }).sort((a,b) => a - b);
-    const isStraight = vals[2]-vals[1] === 1 && vals[1]-vals[0] === 1;
-    const isTrips = ranks.every(r => r === ranks[0]);
-
-    if (isTrips && allSame) {
-      const profit = sb.s21 * 100;
-      balance += sb.s21 + profit;
-      wins.push({ icon: '🎰', name: 'SUITED TRIPS', amount: profit, odds: '100:1', jackpot: true });
-    } else if (isStraight && allSame) {
-      const profit = sb.s21 * 40;
-      balance += sb.s21 + profit;
-      wins.push({ icon: '🌈', name: 'STRAIGHT FLUSH', amount: profit, odds: '40:1', jackpot: true });
-    } else if (isTrips) {
-      const profit = sb.s21 * 30;
-      balance += sb.s21 + profit;
-      wins.push({ icon: '🃏', name: 'TRIPS', amount: profit, odds: '30:1', jackpot: false });
-    } else if (isStraight) {
-      const profit = sb.s21 * 10;
-      balance += sb.s21 + profit;
-      wins.push({ icon: '📈', name: 'STRAIGHT', amount: profit, odds: '10:1', jackpot: false });
-    } else if (allSame) {
-      const profit = sb.s21 * 5;
-      balance += sb.s21 + profit;
-      wins.push({ icon: '♠️', name: 'FLUSH', amount: profit, odds: '5:1', jackpot: false });
-    }
+    const ranks = three.map(c=>c.rank), suits=three.map(c=>c.suit);
+    const allSame = suits.every(s=>s===suits[0]);
+    const vals = three.map(c=>{if(c.rank==='A')return 1;if(['J','Q','K'].includes(c.rank))return['J','Q','K'].indexOf(c.rank)+11;return parseInt(c.rank);}).sort((a,b)=>a-b);
+    const isStraight = vals[2]-vals[1]===1&&vals[1]-vals[0]===1, isTrips=ranks.every(r=>r===ranks[0]);
+    if (isTrips&&allSame){const p=sb.s21*100;balance+=sb.s21+p;wins.push({icon:'🎰',name:'SUITED TRIPS',amount:p,odds:'100:1',jackpot:true});}
+    else if(isStraight&&allSame){const p=sb.s21*40;balance+=sb.s21+p;wins.push({icon:'🌈',name:'STRAIGHT FLUSH',amount:p,odds:'40:1',jackpot:true});}
+    else if(isTrips){const p=sb.s21*30;balance+=sb.s21+p;wins.push({icon:'🃏',name:'TRIPS',amount:p,odds:'30:1',jackpot:false});}
+    else if(isStraight){const p=sb.s21*10;balance+=sb.s21+p;wins.push({icon:'📈',name:'STRAIGHT',amount:p,odds:'10:1',jackpot:false});}
+    else if(allSame){const p=sb.s21*5;balance+=sb.s21+p;wins.push({icon:'♠️',name:'FLUSH',amount:p,odds:'5:1',jackpot:false});}
   }
 
-  // ── Lucky Ladies ──────────────────────────────────────────────────────
   if (sb.ll > 0) {
-    const c1 = playerHand[0], c2 = playerHand[1];
-    const ps = handScore([c1, c2]);
-    if (c1.rank === 'Q' && c2.rank === 'Q' && c1.suit === 'H' && c2.suit === 'H') {
-      const profit = sb.ll * 200;
-      balance += sb.ll + profit;
-      wins.push({ icon: '👑', name: 'QUEEN OF HEARTS!', amount: profit, odds: '200:1', jackpot: true });
-    } else if (c1.rank === 'Q' && c2.rank === 'Q') {
-      const profit = sb.ll * 25;
-      balance += sb.ll + profit;
-      wins.push({ icon: '👸', name: 'PAIR OF QUEENS', amount: profit, odds: '25:1', jackpot: false });
-    } else if (ps === 20) {
-      const profit = sb.ll * 4;
-      balance += sb.ll + profit;
-      wins.push({ icon: '🍀', name: 'LUCKY LADIES (20)', amount: profit, odds: '4:1', jackpot: false });
-    }
+    const c1=playerHand[0],c2=playerHand[1],ps=handScore([c1,c2]);
+    if(c1.rank==='Q'&&c2.rank==='Q'&&c1.suit==='H'&&c2.suit==='H'){const p=sb.ll*200;balance+=sb.ll+p;wins.push({icon:'👑',name:'QUEEN OF HEARTS!',amount:p,odds:'200:1',jackpot:true});}
+    else if(c1.rank==='Q'&&c2.rank==='Q'){const p=sb.ll*25;balance+=sb.ll+p;wins.push({icon:'👸',name:'PAIR OF QUEENS',amount:p,odds:'25:1',jackpot:false});}
+    else if(ps===20){const p=sb.ll*4;balance+=sb.ll+p;wins.push({icon:'🍀',name:'LUCKY LADIES (20)',amount:p,odds:'4:1',jackpot:false});}
   }
 
-  // ── Blazing 7's ────────────────────────────────────────────────────────
   if (sb.b7 > 0) {
-    // Check player's first two cards + one more if available (use first 3 cards dealt to player)
-    const handToCheck = playerHand.slice(0, 3);
-    if (handToCheck.length >= 3) {
-      const allDiamond7 = handToCheck.every(c => c.rank === '7' && c.suit === 'D');
-      if (allDiamond7) {
-        const profit = sb.b7 * 500;
-        balance += sb.b7 + profit;
-        wins.push({ icon: '🔥', name: 'BLAZING 7\'S — 7♦7♦7♦!', amount: profit, odds: '500:1', jackpot: true });
-      }
-    }
+    const h = playerHand.slice(0,3);
+    if(h.length>=3&&h.every(c=>c.rank==='7'&&c.suit==='D')){const p=sb.b7*500;balance+=sb.b7+p;wins.push({icon:'🔥',name:"BLAZING 7'S — 7♦7♦7♦!",amount:p,odds:'500:1',jackpot:true});}
   }
 
-  if (wins.length > 0) {
-    setTimeout(() => showSideBetWins(wins, true), 1000);
-  }
+  if (wins.length > 0) setTimeout(() => showSideBetWins(wins, true), 1000);
 
   updateBalance();
   resetUnlockedSideBets();
@@ -2176,7 +2422,6 @@ function endRound(result, pl) {
     if (el) el.classList.remove('recommended');
   });
 
-  // Reset split state
   splitHand = [];
   playingSplit = false;
   splitAces = false;
@@ -2184,7 +2429,6 @@ function endRound(result, pl) {
   hand2Doubled = false;
   insuranceBet = 0;
 
-  // Restore bet label
   syncBetLabel();
 }
 
@@ -2276,6 +2520,7 @@ function refreshStats() {
   updateBalance();
   syncBetLabel();
   updateSbTotal();
+  updateShoeVisual();
 })();
 </script>
 </body>
